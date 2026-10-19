@@ -9,6 +9,7 @@ const uint8_t LED_PIN = LED_BUILTIN;
 const uint8_t LIGHT_PIN = A0;
 
 // Change these values, then upload again.
+const bool CSV_OUTPUT = false;       // Set true only for record_csv.py.
 const uint16_t ENTER_MM = 500;       // Enter when closer than 50 cm.
 const uint16_t EXIT_MM = 600;        // Remain near through 60 cm.
 const uint32_t HOLD_MS = 10000UL;    // Later room trial: 600000UL.
@@ -31,6 +32,25 @@ bool overrideOn = false;
 bool lampOn = true;
 
 void logRow(uint32_t now) {
+  if (!CSV_OUTPUT) {
+    Serial.print(F("Distance: "));
+    if (echoOk) {
+      Serial.print(distanceMm / 10);
+      Serial.print('.');
+      Serial.print(distanceMm % 10);
+      Serial.print(F(" cm"));
+    } else {
+      Serial.print(F("NO VALID ECHO (check target and wiring)"));
+    }
+    Serial.print(F(" | Light (raw): "));
+    Serial.print(lightRaw);
+    Serial.print(F(" | LED: "));
+    Serial.print(lampOn ? F("ON") : F("OFF"));
+    if (overrideOn) Serial.print(F(" | Manual override"));
+    if (fault) Serial.print(F(" | Sensor fault: LED forced ON"));
+    Serial.println();
+    return;
+  }
   Serial.print(now);
   Serial.print(',');
   if (echoOk) {
@@ -54,7 +74,10 @@ void setup() {
   pinMode(ECHO_PIN, INPUT);
   pinMode(OVERRIDE_PIN, INPUT_PULLUP);
   Serial.begin(9600);
-  Serial.println(F("uptime_ms,distance_cm,echo_ok,ldr_raw,near,fault,override,lamp"));
+  if (CSV_OUTPUT)
+    Serial.println(F("uptime_ms,distance_cm,echo_ok,ldr_raw,near,fault,override,lamp"));
+  else
+    Serial.println(F("HC-SR04 ready. Distance in cm; light is raw 0-1023, not lux."));
 }
 
 void loop() {

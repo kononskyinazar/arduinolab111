@@ -40,5 +40,17 @@ int main() {
   clockMs = UINT32_MAX - 1000; sample(2842);
   echoUs = 5800; clockMs = 500; loop(); assert(ledOutput == HIGH);
   clockMs = 10000; loop(); assert(ledOutput == LOW);
-  std::cout << "PASS: thresholds, hysteresis, hold, faults, recovery, override, range, rollover\n";
+  // Verify the actual user-visible distance and invalid-echo messages.
+  Serial.output.str("");
+  echoOk = true; distanceMm = 324; lightRaw = 512;
+  lampOn = true; fault = false; overrideOn = false;
+  logRow(clockMs);
+  assert(Serial.output.str() == "Distance: 32.4 cm | Light (raw): 512 | LED: ON\n");
+  Serial.output.str("");
+  echoOk = false; fault = true;
+  logRow(clockMs);
+  assert(Serial.output.str().find("NO VALID ECHO") != std::string::npos);
+  assert(Serial.output.str().find("Sensor fault: LED forced ON") != std::string::npos);
+  assert(Serial.output.str().find("32.4") == std::string::npos);
+  std::cout << "PASS: control logic, distance display, invalid echo, fault display\n";
 }

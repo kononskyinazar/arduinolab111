@@ -1,13 +1,16 @@
 #pragma once
 #include <cstdint>
+#include <sstream>
 const int LOW = 0, HIGH = 1, INPUT = 0, OUTPUT = 1, INPUT_PULLUP = 2;
 const uint8_t A0 = 14;
 const uint8_t LED_BUILTIN = 13;
 #define F(value) value
 struct SerialStub {
+  std::ostringstream output;
   void begin(int) {}
-  template <typename T> void print(T) {}
-  template <typename T> void println(T) {}
+  template <typename T> void print(T value) { output << value; }
+  template <typename T> void println(T value) { output << value << '\n'; }
+  void println() { output << '\n'; }
 };
 extern SerialStub Serial;
 uint32_t millis();
